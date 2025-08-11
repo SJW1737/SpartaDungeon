@@ -29,6 +29,30 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody _rigidbody;
 
+    private Coroutine speedBoostCo;
+
+    private void ApplySpeedBoost(float duration, float multiplier)
+    {
+        if (speedBoostCo != null) StopCoroutine(speedBoostCo);
+        speedBoostCo = StartCoroutine(SpeedBoostRoutine(duration, multiplier));
+    }
+
+    private IEnumerator SpeedBoostRoutine(float duration, float multiplier)
+    {
+        float originalSpeed = moveSpeed;
+        moveSpeed = originalSpeed * multiplier;
+
+        float t = duration;
+        while (t > 0f)
+        {
+            t -= Time.deltaTime;
+            yield return null;
+        }
+
+        moveSpeed = originalSpeed;
+        speedBoostCo = null;
+    }
+
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
@@ -67,10 +91,6 @@ public class PlayerController : MonoBehaviour
 
     public void OnJumpInput(InputAction.CallbackContext context)
     {
-        if (context.started)
-        {
-            Debug.Log($"Jump started, grounded={IsGrounded()}");
-        }
         if (context.phase == InputActionPhase.Started && IsGrounded())
         {
             _rigidbody.AddForce(Vector2.up * jumpPower, ForceMode.Impulse);
